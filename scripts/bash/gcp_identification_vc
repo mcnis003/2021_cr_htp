@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+
+# use "../../scripts/bash/gcp_identification_vc"
+
+# the purpose of this script is to subset the autoexposure calibrated photos by proximity to each ground control point, then identify the locations of each ground control point within the photo, and finally to save the location of the ground control points to a file for use in opendronemap 
+
+# print begin script to console
+
+echo " "
+echo "*****begin gcp identification*****"
+
+# function to delete directories
+
+delete_directory(){
+    if [ -d "$1" ]; then
+	echo "deleting old $1 directory"
+	rm -rf $1
+    fi
+}
+
+# function to create directories
+
+create_directory(){
+    if [ ! -d "$1" ]; then
+	echo "creating new $1 directory"
+	mkdir $1
+    fi
+}
+
+create_directory "gcp_lists"
+
+# 1. define the directories to be deleted and/or produced
+
+channels=( "655nm" "725nm" "800nm" "rgb" )
+directories=( "655nm_autoexposure_calibration_gcps" "725nm_autoexposure_calibration_gcps" "800nm_autoexposure_calibration_gcps" "rgb_autoexposure_calibration_gcps" )
+sub_directories=( "west_north" "west_south" "east_north" "east_south" "far_east_north" "far_east_south")
+
+# 2. delete the directories for each channel if they exist
+
+for i in "${directories[@]}"; do
+    delete_directory $i
+done
+
+# 3. create directories for each channel and subdirectories for each ground control point
+
+for i in "${directories[@]}"; do
+    create_directory $i
+
+    for ii in "${sub_directories[@]}"; do
+	create_directory $i/$ii
+    done
+
+done
+
+# 4. subset the photos for each channel and gcp
+
+/usr/local/bin/Rscript ../../scripts/r/gcp_subset_calibrated_photos_vc.R --vanilla
+
+# 5. find ground control points
+
+for i in "${directories[@]}"; do
+
+    echo "begin template match "$i""
+
+    for ii in "${sub_directories[@]}"; do
+
+	echo "begin template match "$ii""
+
+	for iii in $i/$ii/*; do
+	    
+	    ../../scripts/cpp/find_gcp/build/Debug/find_gcp "$iii" "../../ground_control_points/templates_for_identification/${ii}_${i:0:3}.jpg" "$i" "$ii"
+	    
+	done
+
+	echo "finish template match "$ii""
+	
+    done
+
+    echo "finish template match "$i""
+
+done
+
+# 6. subset and write individual channel results
+
+# /usr/local/bin/Rscript ../../scripts/r/format_gcp_lists_for_odm_vc.R "auto" --vanilla
+
+# print completion file
+
+echo "identify gcps complete" > status/03_gcp_identification_complete.txt
+
+# print finish script to console
+
+echo "*****finish gcp identification*****"
+echo " "

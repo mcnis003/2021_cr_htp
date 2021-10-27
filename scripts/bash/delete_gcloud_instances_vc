@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# the purpose of this bash script is to delete the four gcloud instances needed to run the analyses
+
+# use: scripts/bash/delete_gcloud_instances_vc
+
+#stop and then delete the gcloud instances
+
+gcloud compute instances stop ianmrgb --zone us-central1-a --quiet
+gcloud compute instances stop ianm655nm --zone us-west1-a --quiet
+gcloud compute instances stop ianm725nm --zone us-east1-b --quiet
+gcloud compute instances stop ianm800nm --zone us-east4-a --quiet
+
+gcloud compute instances delete ianmrgb --zone us-central1-a
+gcloud compute instances delete ianm655nm --zone us-west1-a
+gcloud compute instances delete ianm725nm --zone us-east1-b
+gcloud compute instances delete ianm800nm --zone us-east4-a

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+#the purpose of this bash script is to start up the four gcloud instances needed to run the analyses
+
+#use: scripts/bash/create_gcloud_instances_vc
+
+#start the custom gcloud instances with the docker optimized image, 10cpu, 30gb ram, and 60gb disk
+#each instance is in a different zone to avoid single zone limits
+
+gcloud compute instances create ianmrgb --image cos-stable-55-8872-76-0 --image-project cos-cloud --zone us-central1-a --custom-cpu 10 --custom-memory 30 --boot-disk-size 60gb
+gcloud compute instances create ianm655nm --image cos-stable-55-8872-76-0 --image-project cos-cloud --zone us-west1-a --custom-cpu 10 --custom-memory 30 --boot-disk-size 60gb
+gcloud compute instances create ianm725nm --image cos-stable-55-8872-76-0 --image-project cos-cloud --zone us-east1-b --custom-cpu 10 --custom-memory 30 --boot-disk-size 60gb
+gcloud compute instances create ianm800nm --image cos-stable-55-8872-76-0 --image-project cos-cloud --zone us-east4-a --custom-cpu 10 --custom-memory 30 --boot-disk-size 60gb

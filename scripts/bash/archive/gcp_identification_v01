@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# use "../../scripts/bash/gcp_identification_vc"
+
+# the purpose of this script is to subset the autoexposure calibrated photos by proximity to each ground control point, then identify the locations of each ground control point within the photo, and finally to save the location of the ground control points to a file for use in opendronemap 
+
+# print begin script to console
+
+echo " "
+echo "*****begin gcp identification*****"
+
+# print finish script to console
+
+echo "*****finish gcp identification*****"
+echo " "

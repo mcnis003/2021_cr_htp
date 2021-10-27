@@ -1,0 +1,10 @@
+      RMSE  Rsquared       MAE Resample
+1 22.81195 0.6733524 17.765034    Fold1
+2 10.79178 0.2450744  8.715984    Fold3
+3 19.79758 0.3736119 15.292825    Fold2
+2017 early variance
+[1] 983.6738
+2017 late variance
+[1] 256.9656
+2018 variance
+[1] 101.9515

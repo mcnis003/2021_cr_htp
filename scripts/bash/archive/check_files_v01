@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+
+# use "/../../scripts/bash/check_files_vc auto_gcp"
+
+# the purpose of this script is to verify that all the files exist to complete the analysis
+# files not found will be printed to the console
+
+# print begin script to console
+
+echo "*****begin check files*****"
+
+# determine if trailing argument is valid
+
+if [ "${@:1}" = "auto_gcp" ]; then
+    echo "auto gcp chosen"
+elif [ "${@:1}" = "manual_gcp" ]; then
+    echo "manual gcp chosen"
+else
+    echo "invalid gcp method chosen"
+fi
+
+# define functions
+
+#function to check for files
+
+check_file(){
+    if [ ! -f "$1" ]; then
+	echo "$1 not found!"
+	num_not_found = num_not_found + 1
+    fi
+}
+
+#function to check for dirctory
+
+check_directory(){
+    if [ ! -d "$1" ]; then
+	echo "$1 not found!"
+	num_not_found = num_not_found + 1
+    fi
+}
+
+# set a counter for missing files
+
+num_not_found = 0
+
+# things to check for:
+# 1. directories with drone photos
+
+photo_directories = ( "/655nm"
+		      "/725nm"
+		      "/800nm"
+		      "/rgb" )
+
+for i in "${photo_directories[@]}"; do
+    check_directory $i
+done
+
+# 2. gcp coordintate files if the flight does not have auto gcps, this is a trailing argument for this script
+
+if [ "${@:1}" != "auto_gcp" ]; then
+    
+    gcp_coordinate_files = ( "gcp_lists/655_nm_gcp_list_original.csv"
+	      "gcp_lists/725_nm_gcp_list_original.csv"
+	      "gcp_lists/800_nm_gcp_list_original.csv"
+	      "gcp_lists/rgb_gcp_list_original.csv" )
+    
+    for i in "${gcp_coordinate_files[@]}"; do
+	check_file $i
+    done
+    
+fi
+
+# 3. gcp template files if the flight does have auto gcps, this is a trailing argument for this script
+
+if [ "${@:1}" = "auto_gcp" ]; then
+
+    gcp_template_files = ( "gcp_lists/655_nm_gcp_list_original.csv"
+	      "gcp_lists/725_nm_gcp_list_original.csv"
+	      "gcp_lists/800_nm_gcp_list_original.csv"
+	      "gcp_lists/rgb_gcp_list_original.csv" )
+    
+    for i in "${gcp_template_files[@]}"; do
+	check_file $i
+    done
+    
+fi
+
+# 4. gcp location file if the flight does have auto gcps, this is a trailing argument for this script
+
+if [ "${@:1}" = "auto_gcp" ]; then
+    check_file ""
+fi
+
+# 5. ground pixel random forest classification model
+
+#check_file "/../../rf_training_materials/rgb_model.rda"
+
+# print the number of missing files to console and status file
+
+echo "$num_not_found necesarry files missing"
+echo "$num_not_found necesarry files missing" > /status/check_files_status.txt
+
+# print script finished to console
+
+echo "*****finish check files*****"

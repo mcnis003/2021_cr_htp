@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+# use
+
+# the purpose of this script is produce orthomosaic photos using opendronemap on gcloud
+
+# the steps of this process are:
+
+# 1. start the gcloud instance
+
+gcloud compute instances start ianmrgb --zone us-central1-a --quiet
+
+# 2. copy the ground control point data and photos to the gcloud instance
+
+gcloud compute scp gcp_lists/rgb_gcp_list_rescaled.txt ianmrgb:~/ --zone us-central1-a
+gcloud compute scp rgb_autoexposure_calibration/*.jpg ianmrgb:~/ --zone us-central1-a
+
+# 3. execute opendrone map
+
+gcloud compute ssh ianmrgb --zone us-central1-a --command "docker run -i -v /home/ianmcnish/rgb_gcp_list_rescaled.txt:/code/images/rgb_gcp_list_rescaled.txt -v /home/ianmcnish/:/code/images -v /home/ianmcnish/:/code/odm_orthophoto -v /home/ianmcnish/:/code/odm_texturing opendronemap/opendronemap --orthophoto-resolution 30.0 --opensfm-processes 8 --gcp /code/images/rgb_gcp_list_rescaled.txt --pmvs-num-cores 8"
+
+# 4. transfer the results to computer
+
+gcloud compute scp ianmrgb:/home/ianmcnish/* rgb_autoexposure_calibration/  --zone us-central1-a
+
+# 5. stop docker on gcloud instance
+
+docker stop $(docker ps -a -q)
+
+# 6. delete files from docker
+
+docker rm $(docker ps -a -q)
+
+# 7. stop the glcoud instance
+
+gcloud compute instances stop ianmrgb --zone us-central1-a --quiet
+
+# 8. convert orthomosaic format

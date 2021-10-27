@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+# use ../../scripts/bash/gcloud_odm_725nm_vc
+
+# the purpose of this script is produce orthomosaic photos using opendronemap on gcloud
+
+# the steps of this process are:
+
+echo " "
+echo "*****begin stitching 725nm*****"
+echo " "
+
+# 1. start the gcloud instance
+
+gcloud compute instances start ianm725nm --zone us-east1-b --quiet
+gcloud compute ssh ianm725nm --zone us-east1-b --command "rm -rf /home/ianmcnish/*"
+
+# 2. copy the ground control point data and photos to the gcloud instance
+
+gcloud compute scp gcp_lists/725nm_gcp_list.txt ianm725nm:~/ --zone us-east1-b
+gcloud compute scp 725nm_autoexposure_calibration/*.jpg ianm725nm:~/ --zone us-east1-b
+
+# 3. execute opendronemap
+
+gcloud compute ssh ianm725nm --zone us-east1-b --command "docker run -i -v /home/ianmcnish/725nm_gcp_list.txt:/code/images/725nm_gcp_list.txt -v /home/ianmcnish/:/code/images -v /home/ianmcnish/:/code/odm_orthophoto -v /home/ianmcnish/:/code/odm_texturing opendronemap/opendronemap:0.4.0 --gcp /code/images/725nm_gcp_list.txt --fast-orthophoto"
+
+# 4. delete original image files and transfer the results to computer
+
+gcloud compute ssh ianm725nm --zone us-east1-b --command "rm /home/ianmcnish/calibrated*"
+rm -rf 725nm_orthophoto/
+mkdir 725nm_orthophoto/
+gcloud compute scp ianm725nm:/home/ianmcnish/* 725nm_orthophoto/ --zone us-east1-b
+
+# 5. delete remaining files
+
+gcloud compute ssh ianm725nm --zone us-east1-b --command "rm -r /home/ianmcnish/*"
+
+# 6. stop docker on gcloud instance
+
+#gcloud compute ssh ianm725nm --zone us-east1-b --command "docker stop $(docker ps -a -q)"
+
+# 7. delete files from docker
+
+#gcloud compute ssh ianm725nm --zone us-east1-b --command "docker rm $(docker ps -a -q)"
+
+# 8. stop the glcoud instance
+
+gcloud compute instances stop ianm725nm --zone us-east1-b --quiet
+
+# 9. convert orthomosaic format
+
+echo " "
+echo "****finish stitching 725nm*****"
+echo " "

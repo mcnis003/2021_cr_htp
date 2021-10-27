@@ -1,0 +1,58 @@
+#use: "caffeinate -u make -j4 -i &> run_log.txt"
+
+all: status/05_odm_orthophoto_complete.txt
+
+#calibrate orthophotos using ground panels
+status/05_odm_orthophoto_complete.txt: rgb_orthophoto/odm_orthophoto.tif 655nm_orthophoto/odm_orthophoto.tif 725nm_orthophoto/odm_orthophoto.tif 800nm_orthophoto/odm_orthophoto.tif
+	../../scripts/bash/control_panel_calibration_vc
+
+#stitch photos from each channel, this is run in parallel
+
+rgb_orthophoto/odm_orthophoto.tif: status/04_gcp_lists_complete.txt ../../scripts/bash/gcloud_odm_rgb_vc
+	../../scripts/bash/gcloud_odm_rgb_vc
+
+655nm_orthophoto/odm_orthophoto.tif: status/04_gcp_lists_complete.txt ../../scripts/bash/gcloud_odm_655nm_vc
+	../../scripts/bash/gcloud_odm_655nm_vc
+
+725nm_orthophoto/odm_orthophoto.tif: status/04_gcp_lists_complete.txt ../../scripts/bash/gcloud_odm_725nm_vc
+	../../scripts/bash/gcloud_odm_725nm_vc
+
+800nm_orthophoto/odm_orthophoto.tif: status/04_gcp_lists_complete.txt ../../scripts/bash/gcloud_odm_800nm_vc
+	../../scripts/bash/gcloud_odm_800nm_vc
+
+#create gcp lists for use in ODM
+status/04_gcp_lists_complete.txt: status/02_autoexposure_calibration_complete.txt ../../scripts/r/create_subsetted_gcp_lists_vc.R
+	/usr/local/bin/Rscript ../../scripts/r/create_subsetted_gcp_lists_vc.R --vanilla 1.9231 EPSG:32615
+
+#calibrate for autoexposure
+status/02_autoexposure_calibration_complete.txt: ../../scripts/r/calibrate_by_autoexposure_vc.R /usr/local/bin/Rscript ../../scripts/r/crop_655nm_before_odm_vc.R status/01_check_files_complete.txt
+	/usr/local/bin/Rscript ../../scripts/r/calibrate_by_autoexposure_vc.R --vanilla
+	/usr/local/bin/Rscript ../../scripts/r/crop_655nm_before_odm_vc.R --vanilla
+	echo "autoexposure calibration complete" >> status/02_autoexposure_calibration_complete.txt
+
+#check for files required to complete analysis
+status/01_check_files_complete.txt: ../../scripts/bash/check_files_vc
+	../../scripts/bash/check_files_vc manual_gcp
+
+clean:
+	rm -rf status
+	rm -rf 655nm_autoexposure_calibration
+	rm -rf 725nm_autoexposure_calibration
+	rm -rf 800nm_autoexposure_calibration
+	rm -rf rgb_autoexposure_calibration
+	rm -rf 655nm_autoexposure_calibration_gcps
+	rm -rf 725nm_autoexposure_calibration_gcps
+	rm -rf 800nm_autoexposure_calibration_gcps
+	rm -rf rgb_autoexposure_calibration_gcps
+	rm -rf 655nm_autoexposure_calibration_control_panels
+	rm -rf 725nm_autoexposure_calibration_control_panels
+	rm -rf 800nm_autoexposure_calibration_control_panels
+	rm -rf rgb_autoexposure_calibration_control_panels
+	rm -rf final_orthomosaic_data
+	rm -f run_log.txt
+	rm -f run_log_all.txt
+	rm -f run_log_partial.txt
+	rm -rf rgb_orthophoto
+	rm -rf 655nm_orthophoto
+	rm -rf 725nm_orthophoto
+	rm -rf 800nm_orthophoto

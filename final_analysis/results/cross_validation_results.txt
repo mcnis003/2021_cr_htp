@@ -1,0 +1,17 @@
+cross-validation R2
+[1] 0.6826451
+cross-validation MAE
+[1] 9.916054
+cross-validation RMSE
+[1] 14.17797
+cross-validation variable importance
+           IncNodePurity
+mean_725nm      804041.4
+mean_800nm      452300.8
+mean_red       1174896.7
+mean_green      493392.6
+mean_blue      1530883.1
+(Intercept) 
+ -0.7267724 
+objModel$finalModel$predicted 
+                     1.029965 
